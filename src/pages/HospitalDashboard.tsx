@@ -53,6 +53,7 @@ const HospitalDashboard = () => {
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [patientGender, setPatientGender] = useState<'male' | 'female' | 'other'>('male');
+  const [patientPassword, setPatientPassword] = useState('');
   const [generatedHealthId, setGeneratedHealthId] = useState('');
   
   const [uploadHealthId, setUploadHealthId] = useState('');
@@ -77,10 +78,10 @@ const HospitalDashboard = () => {
   }, [currentUser, db]);
 
   const handleGenerateHealthId = () => {
-    if (!patientName || !patientGender || !patientPhone) {
+    if (!patientName || !patientGender || !patientPhone || !patientPassword) {
       toast({
         title: 'Error',
-        description: 'Please fill all required fields',
+        description: 'Please fill all required fields including password',
         variant: 'destructive',
       });
       return;
@@ -88,8 +89,6 @@ const HospitalDashboard = () => {
     
     const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
     setGeneratedHealthId(newHealthId);
-    
-    const tempPassword = `${patientName.toLowerCase().replace(/\s+/g, '')}${patientPhone.slice(-4)}`;
     
     if (!db.checkHealthIdExists(newHealthId)) {
       db.addUser({
@@ -99,12 +98,12 @@ const HospitalDashboard = () => {
         healthId: newHealthId,
         gender: patientGender,
         phoneNumber: patientPhone,
-        password: tempPassword,
+        password: patientPassword,
       });
       
       toast({
         title: 'Patient Registered',
-        description: `Temporary password: ${tempPassword}`,
+        description: `Patient registered with Health ID: ${newHealthId}`,
       });
     }
   };
@@ -354,6 +353,17 @@ const HospitalDashboard = () => {
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="patientPassword">Password</Label>
+                    <Input
+                      id="patientPassword"
+                      type="password"
+                      value={patientPassword}
+                      onChange={(e) => setPatientPassword(e.target.value)}
+                      placeholder="Set a password for the patient"
+                    />
                   </div>
                 </CardContent>
                 

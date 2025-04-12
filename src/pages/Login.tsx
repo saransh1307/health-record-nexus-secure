@@ -58,31 +58,41 @@ const Login = () => {
   };
 
   const handlePatientRegister = async () => {
-    if (!patientName || !patientPhone || !patientGender || !patientHealthId || !patientPassword) {
+    if (!patientName || !patientPhone || !patientGender || !patientPassword) {
       return; // Form validation will handle this
     }
     
-    const success = await register({
-      type: 'patient',
-      name: patientName,
-      healthId: patientHealthId,
-      password: patientPassword,
-      gender: patientGender,
-      phoneNumber: patientPhone
-    });
-    
-    if (success) {
-      navigate('/patient');
+    // Generate Health ID if not provided
+    if (!patientHealthId) {
+      const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
+      setPatientHealthId(newHealthId);
+      
+      const success = await register({
+        type: 'patient',
+        name: patientName,
+        healthId: newHealthId,
+        password: patientPassword,
+        gender: patientGender,
+        phoneNumber: patientPhone
+      });
+      
+      if (success) {
+        navigate('/patient');
+      }
+    } else {
+      const success = await register({
+        type: 'patient',
+        name: patientName,
+        healthId: patientHealthId,
+        password: patientPassword,
+        gender: patientGender,
+        phoneNumber: patientPhone
+      });
+      
+      if (success) {
+        navigate('/patient');
+      }
     }
-  };
-
-  const handleGenerateHealthId = () => {
-    if (!patientName || !patientGender || !patientPhone) {
-      return; // Form validation will handle this
-    }
-    
-    const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
-    setPatientHealthId(newHealthId);
   };
 
   return (
@@ -256,7 +266,14 @@ const Login = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={handleGenerateHealthId}
+                    onClick={() => {
+                      if (patientName && patientPhone && patientGender) {
+                        const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
+                        setPatientHealthId(newHealthId);
+                      } else {
+                        alert("Please fill name, phone and gender first");
+                      }
+                    }}
                     type="button"
                   >
                     Generate ID
@@ -267,8 +284,9 @@ const Login = () => {
                   value={patientHealthId} 
                   onChange={(e) => setPatientHealthId(e.target.value)} 
                   placeholder="14-digit Health ID" 
-                  required 
+                  readOnly
                 />
+                <p className="text-xs text-gray-500">Health ID will be generated based on your information</p>
               </div>
               
               <div className="space-y-2">

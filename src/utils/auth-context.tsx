@@ -88,7 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phoneNumber: string,
     gender: 'male' | 'female' | 'other'
   ): string => {
-    // Generate a unique 14-digit Health ID
     // First check if a health ID already exists for this person
     const existingUser = db.users.find(
       user => 
@@ -104,10 +103,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return existingUser.healthId;
     }
 
-    // Generate a new health ID
-    const timestamp = Date.now().toString().slice(-10);
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    const healthId = timestamp + random;
+    // Generate a new health ID - use consistent algorithm
+    // Use deterministic approach based on name and phone for consistency
+    const nameHash = name.toLowerCase().split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const phoneHash = phoneNumber.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const genderCode = gender === 'male' ? '1' : gender === 'female' ? '2' : '3';
+    
+    const timestamp = Date.now().toString().slice(-6);
+    const uniqueId = (nameHash + phoneHash).toString().padStart(5, '0').slice(0, 5);
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    
+    // 14-digit Health ID format: yyyymmxxxxxggr (year-month-uniqueid-gender-random)
+    const today = new Date();
+    const year = today.getFullYear().toString();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    
+    const healthId = year + month + uniqueId + genderCode + random;
     
     return healthId;
   };
