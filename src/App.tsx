@@ -39,6 +39,11 @@ const ProtectedRoute = ({ children, requiredType }: { children: JSX.Element, req
 
 // AppRoutes component to use auth context
 const AppRoutes = () => {
+  // Set document title
+  useEffect(() => {
+    document.title = "Health Record by Code Blooded";
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<Login />} />

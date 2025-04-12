@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define types for our database entities
@@ -158,6 +159,8 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   const getApprovedMedicalRecordsByHospitalAndPatient = (hospitalId: string, patientHealthId: string) => {
+    console.log("Checking accessible records for hospital:", hospitalId, "and patient:", patientHealthId);
+    
     // First get records directly uploaded by this hospital for this patient
     const directRecords = medicalRecords.filter(
       (record) => 
@@ -166,14 +169,17 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         record.isApproved
     );
     
-    // Then get other records for this patient that this hospital has access to
-    // via approved consent requests
+    console.log("Direct records:", directRecords);
+    
+    // Check if the hospital has approved access request
     const hasApprovedAccess = consentRequests.some(req => 
       req.hospitalId === hospitalId && 
       req.patientHealthId === patientHealthId && 
       req.type === 'access' && 
       req.status === 'approved'
     );
+    
+    console.log("Has approved access:", hasApprovedAccess);
     
     // If the hospital has approved access, include all records for this patient
     const accessRecords = hasApprovedAccess 
@@ -183,9 +189,17 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         )
       : [];
     
+    console.log("Access records:", accessRecords);
+    
     // Combine both sets of records, removing duplicates
     const allRecordIds = new Set();
-    const combinedRecords = [...directRecords];
+    const combinedRecords: MedicalRecord[] = [];
+    
+    // Add direct records first
+    directRecords.forEach(record => {
+      allRecordIds.add(record.id);
+      combinedRecords.push(record);
+    });
     
     // Add access records that aren't already included
     accessRecords.forEach(record => {
@@ -195,6 +209,7 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       }
     });
     
+    console.log("Combined records:", combinedRecords);
     return combinedRecords;
   };
 
@@ -204,11 +219,26 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   const updateConsentRequest = (requestId: string, status: 'approved' | 'rejected') => {
-    setConsentRequests((prev) =>
-      prev.map((request) =>
-        request.id === requestId ? { ...request, status } : request
-      )
-    );
+    console.log("Updating consent request:", requestId, "to status:", status);
+    
+    // Update consent request status
+    setConsentRequests((prev) => {
+      const updatedRequests = prev.map((request) => {
+        if (request.id === requestId) {
+          const updatedRequest = { ...request, status };
+          console.log("Updated request:", updatedRequest);
+          return updatedRequest;
+        }
+        return request;
+      });
+      return updatedRequests;
+    });
+    
+    // If status is approved and it's an upload request, update the medical record
+    const request = consentRequests.find(req => req.id === requestId);
+    if (status === 'approved' && request && request.type === 'upload' && request.recordId) {
+      updateMedicalRecord(request.recordId, { isApproved: true });
+    }
   };
 
   const getPendingConsentRequests = (healthId: string) => {
