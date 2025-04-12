@@ -45,6 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser]);
 
   const login = async (emailOrHealthId: string, password: string): Promise<boolean> => {
+    console.log("Login attempt with:", emailOrHealthId);
+    
     // Check if it's a hospital (login with email)
     const hospital = db.getUserByEmail(emailOrHealthId);
     if (hospital && hospital.password === password) {
@@ -58,6 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check if it's a patient (login with healthId)
     const patient = db.getUserByHealthId(emailOrHealthId);
+    console.log("Found patient by healthId:", patient);
+    
     if (patient && patient.password === password) {
       setCurrentUser(patient);
       toast({
@@ -125,6 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: Partial<User>): Promise<boolean> => {
     try {
+      console.log("Registering user with data:", userData);
+      
       if (userData.type === 'hospital') {
         if (!userData.email || !userData.password || !userData.name) {
           toast({
@@ -192,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phoneNumber: userData.phoneNumber,
         };
 
+        console.log("Adding patient to database:", patient);
         db.addUser(patient);
         setCurrentUser(patient);
         toast({

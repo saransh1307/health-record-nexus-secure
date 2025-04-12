@@ -33,6 +33,7 @@ const Login = () => {
   const [patientPassword, setPatientPassword] = useState('');
 
   const handleLogin = async () => {
+    console.log("Login attempt:", loginType, loginType === 'hospital' ? email : healthId);
     const loginIdentifier = loginType === 'hospital' ? email : healthId;
     const success = await login(loginIdentifier, password);
     if (success) {
@@ -63,35 +64,24 @@ const Login = () => {
     }
     
     // Generate Health ID if not provided
-    if (!patientHealthId) {
-      const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
-      setPatientHealthId(newHealthId);
-      
-      const success = await register({
-        type: 'patient',
-        name: patientName,
-        healthId: newHealthId,
-        password: patientPassword,
-        gender: patientGender,
-        phoneNumber: patientPhone
-      });
-      
-      if (success) {
-        navigate('/patient');
-      }
-    } else {
-      const success = await register({
-        type: 'patient',
-        name: patientName,
-        healthId: patientHealthId,
-        password: patientPassword,
-        gender: patientGender,
-        phoneNumber: patientPhone
-      });
-      
-      if (success) {
-        navigate('/patient');
-      }
+    let healthIdToUse = patientHealthId;
+    if (!healthIdToUse) {
+      healthIdToUse = generateHealthId(patientName, patientPhone, patientGender);
+      setPatientHealthId(healthIdToUse);
+    }
+    
+    console.log("Registering patient with healthId:", healthIdToUse);
+    const success = await register({
+      type: 'patient',
+      name: patientName,
+      healthId: healthIdToUse,
+      password: patientPassword,
+      gender: patientGender,
+      phoneNumber: patientPhone
+    });
+    
+    if (success) {
+      navigate('/patient');
     }
   };
 

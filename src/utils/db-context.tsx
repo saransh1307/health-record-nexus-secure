@@ -83,6 +83,7 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   // Load from localStorage if available
   const [users, setUsers] = useState<User[]>(() => {
     const savedUsers = localStorage.getItem('healthapp_users');
+    console.log("Loaded users from localStorage:", savedUsers);
     return savedUsers ? JSON.parse(savedUsers) : [];
   });
 
@@ -98,22 +99,30 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   // Save to localStorage whenever state changes
   useEffect(() => {
+    console.log("Saving users to localStorage:", users);
     localStorage.setItem('healthapp_users', JSON.stringify(users));
     localStorage.setItem('healthapp_records', JSON.stringify(medicalRecords));
     localStorage.setItem('healthapp_requests', JSON.stringify(consentRequests));
   }, [users, medicalRecords, consentRequests]);
 
   const addUser = (user: User) => {
+    console.log("Adding user to database:", user);
     setUsers((prev) => [...prev, user]);
     return user.id;
   };
 
   const getUserByEmail = (email: string) => {
-    return users.find((user) => user.type === 'hospital' && user.email === email) as Hospital | undefined;
+    const user = users.find((user) => user.type === 'hospital' && user.email === email) as Hospital | undefined;
+    console.log("getUserByEmail:", email, "result:", user);
+    return user;
   };
 
   const getUserByHealthId = (healthId: string) => {
-    return users.find((user) => user.healthId === healthId) as Patient | undefined;
+    console.log("Looking for user with healthId:", healthId);
+    console.log("All users:", users);
+    const user = users.find((user) => user.healthId === healthId) as Patient | undefined;
+    console.log("getUserByHealthId result:", user);
+    return user;
   };
 
   const checkHealthIdExists = (healthId: string) => {
