@@ -92,7 +92,7 @@ const Login = () => {
           <div className="flex justify-center mb-4">
             <Hospital className="h-12 w-12 text-health-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-health-primary">Health Record Nexus</CardTitle>
+          <CardTitle className="text-2xl font-bold text-health-primary">Health Record by Code Blooded</CardTitle>
           <CardDescription>Secure Health Record Exchange System</CardDescription>
         </CardHeader>
         

@@ -249,7 +249,20 @@ const HospitalDashboard = () => {
       accessHealthId
     );
 
+    console.log("Fetched accessible records:", records);
     setAccessibleRecords(records);
+    
+    if (records.length === 0) {
+      toast({
+        title: 'No Records Found',
+        description: 'No approved medical records are available for this patient',
+      });
+    } else {
+      toast({
+        title: 'Records Retrieved',
+        description: `Found ${records.length} medical records`,
+      });
+    }
   };
 
   const downloadRecord = (record: MedicalRecord) => {

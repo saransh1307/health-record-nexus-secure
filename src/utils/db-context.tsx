@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define types for our database entities
@@ -159,18 +158,44 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   const getApprovedMedicalRecordsByHospitalAndPatient = (hospitalId: string, patientHealthId: string) => {
-    return medicalRecords.filter(
+    // First get records directly uploaded by this hospital for this patient
+    const directRecords = medicalRecords.filter(
       (record) => 
-        (record.hospitalId === hospitalId && record.patientHealthId === patientHealthId && record.isApproved) ||
-        (record.patientHealthId === patientHealthId && 
-          consentRequests.some(req => 
-            req.hospitalId === hospitalId && 
-            req.patientHealthId === patientHealthId && 
-            req.type === 'access' && 
-            req.status === 'approved'
-          )
-        )
+        record.hospitalId === hospitalId && 
+        record.patientHealthId === patientHealthId && 
+        record.isApproved
     );
+    
+    // Then get other records for this patient that this hospital has access to
+    // via approved consent requests
+    const hasApprovedAccess = consentRequests.some(req => 
+      req.hospitalId === hospitalId && 
+      req.patientHealthId === patientHealthId && 
+      req.type === 'access' && 
+      req.status === 'approved'
+    );
+    
+    // If the hospital has approved access, include all records for this patient
+    const accessRecords = hasApprovedAccess 
+      ? medicalRecords.filter(record => 
+          record.patientHealthId === patientHealthId &&
+          record.isApproved
+        )
+      : [];
+    
+    // Combine both sets of records, removing duplicates
+    const allRecordIds = new Set();
+    const combinedRecords = [...directRecords];
+    
+    // Add access records that aren't already included
+    accessRecords.forEach(record => {
+      if (!allRecordIds.has(record.id)) {
+        allRecordIds.add(record.id);
+        combinedRecords.push(record);
+      }
+    });
+    
+    return combinedRecords;
   };
 
   const addConsentRequest = (request: ConsentRequest) => {

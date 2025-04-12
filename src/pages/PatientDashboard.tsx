@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/utils/auth-context';
@@ -37,19 +36,16 @@ const PatientDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Redirect if not logged in as patient
   useEffect(() => {
     if (!currentUser || currentUser.type !== 'patient') {
       navigate('/');
     }
   }, [currentUser, navigate]);
 
-  // State for medical records and consent requests
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [consentRequests, setConsentRequests] = useState<ConsentRequest[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Load patient data
   useEffect(() => {
     if (currentUser && currentUser.type === 'patient') {
       const records = db.getMedicalRecordsByPatient(currentUser.healthId);
@@ -63,7 +59,6 @@ const PatientDashboard = () => {
 
   const handleApproveRequest = (request: ConsentRequest) => {
     if (request.type === 'upload' && request.recordId) {
-      // Approve the upload request
       db.updateMedicalRecord(request.recordId, { isApproved: true });
       db.updateConsentRequest(request.id, 'approved');
       
@@ -72,7 +67,6 @@ const PatientDashboard = () => {
         description: 'Medical record has been approved and is now accessible',
       });
     } else if (request.type === 'access') {
-      // Approve the access request
       db.updateConsentRequest(request.id, 'approved');
       
       toast({
@@ -81,7 +75,6 @@ const PatientDashboard = () => {
       });
     }
     
-    // Refresh the lists
     if (currentUser && currentUser.type === 'patient') {
       const records = db.getMedicalRecordsByPatient(currentUser.healthId);
       setMedicalRecords(records);
@@ -96,7 +89,6 @@ const PatientDashboard = () => {
     db.updateConsentRequest(request.id, 'rejected');
     
     if (request.type === 'upload' && request.recordId) {
-      // Maybe we should delete the record, but for now we'll just leave it unapproved
       toast({
         title: 'Request Rejected',
         description: 'Medical record upload has been rejected',
@@ -108,7 +100,6 @@ const PatientDashboard = () => {
       });
     }
     
-    // Refresh the list
     if (currentUser && currentUser.type === 'patient') {
       const pending = db.getPendingConsentRequests(currentUser.healthId);
       setConsentRequests(pending);
@@ -117,7 +108,6 @@ const PatientDashboard = () => {
   };
 
   const downloadRecord = (record: MedicalRecord) => {
-    // Create a download link for the file
     const link = document.createElement('a');
     link.href = record.fileContent;
     link.download = record.fileName;
@@ -137,7 +127,7 @@ const PatientDashboard = () => {
           <div className="flex items-center space-x-3">
             <User className="h-8 w-8" />
             <div>
-              <h1 className="text-xl font-bold">Health Record Nexus</h1>
+              <h1 className="text-xl font-bold">Health Record by Code Blooded</h1>
               <p className="text-sm opacity-90">Patient Dashboard</p>
             </div>
           </div>
@@ -173,7 +163,6 @@ const PatientDashboard = () => {
             </TabsTrigger>
           </TabsList>
           
-          {/* Medical Records Tab */}
           <TabsContent value="records">
             <div className="grid grid-cols-1 gap-6">
               <Card>
@@ -248,7 +237,6 @@ const PatientDashboard = () => {
             </div>
           </TabsContent>
           
-          {/* Consent Requests Tab */}
           <TabsContent value="requests">
             <div className="grid grid-cols-1 gap-6">
               <Card>

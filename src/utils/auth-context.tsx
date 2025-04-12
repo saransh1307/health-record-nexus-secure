@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useDb, User, Hospital, Patient } from './db-context';
 import { useToast } from '@/components/ui/use-toast';
@@ -59,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Check if it's a patient (login with healthId)
+    console.log("Checking for patient with healthId:", emailOrHealthId);
     const patient = db.getUserByHealthId(emailOrHealthId);
     console.log("Found patient by healthId:", patient);
     
@@ -69,6 +69,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: `Welcome, ${patient.name}!`,
       });
       return true;
+    } else {
+      console.log("Login failed. Patient not found or password mismatch.");
+      if (patient) {
+        console.log("Patient found but password didn't match. Provided:", password, "Stored:", patient.password);
+      }
     }
 
     toast({
