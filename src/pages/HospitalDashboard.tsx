@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/utils/auth-context';
-import { useDb, Patient, MedicalRecord } from '@/utils/db-context';
+import { useDb, Patient, MedicalRecord, ConsentRequest } from '@/utils/db-context';
 import { 
   Card, 
   CardContent, 
@@ -45,20 +44,17 @@ const HospitalDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Redirect if not logged in as hospital
   useEffect(() => {
     if (!currentUser || currentUser.type !== 'hospital') {
       navigate('/');
     }
   }, [currentUser, navigate]);
 
-  // State for Generate Health ID tab
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [patientGender, setPatientGender] = useState<'male' | 'female' | 'other'>('male');
   const [generatedHealthId, setGeneratedHealthId] = useState('');
   
-  // State for Upload Medical Record tab
   const [uploadHealthId, setUploadHealthId] = useState('');
   const [recordType, setRecordType] = useState('Prescription');
   const [recordNotes, setRecordNotes] = useState('');
@@ -67,12 +63,10 @@ const HospitalDashboard = () => {
   const [fileType, setFileType] = useState('');
   const [patientFound, setPatientFound] = useState<Patient | null>(null);
   
-  // State for Access Medical Records tab
   const [accessHealthId, setAccessHealthId] = useState('');
   const [accessPatient, setAccessPatient] = useState<Patient | null>(null);
   const [accessibleRecords, setAccessibleRecords] = useState<MedicalRecord[]>([]);
   
-  // Records uploaded by this hospital
   const [hospitalRecords, setHospitalRecords] = useState<MedicalRecord[]>([]);
 
   useEffect(() => {
@@ -95,12 +89,9 @@ const HospitalDashboard = () => {
     const newHealthId = generateHealthId(patientName, patientPhone, patientGender);
     setGeneratedHealthId(newHealthId);
     
-    // Create a temporary password for the patient
     const tempPassword = `${patientName.toLowerCase().replace(/\s+/g, '')}${patientPhone.slice(-4)}`;
     
-    // Check if patient already exists
     if (!db.checkHealthIdExists(newHealthId)) {
-      // Register the new patient
       db.addUser({
         id: `patient_${Date.now()}`,
         type: 'patient',
@@ -169,7 +160,6 @@ const HospitalDashboard = () => {
       return;
     }
 
-    // Create the medical record
     const record: MedicalRecord = {
       id: `record_${Date.now()}`,
       patientHealthId: patientFound.healthId,
@@ -180,16 +170,14 @@ const HospitalDashboard = () => {
       fileType,
       notes: recordNotes,
       createdAt: new Date().toISOString(),
-      isApproved: false, // Needs patient consent
+      isApproved: false,
     };
 
-    // Add the record
     const recordId = db.addMedicalRecord(record);
 
-    // Create a consent request for the record
-    const consentRequest = {
+    const consentRequest: ConsentRequest = {
       id: `request_${Date.now()}`,
-      type: 'upload',
+      type: "upload",
       patientHealthId: patientFound.healthId,
       hospitalId: currentUser.id,
       hospitalName: currentUser.name,
@@ -205,7 +193,6 @@ const HospitalDashboard = () => {
       description: 'Waiting for patient consent',
     });
 
-    // Reset form
     setUploadHealthId('');
     setRecordType('Prescription');
     setRecordNotes('');
@@ -229,10 +216,9 @@ const HospitalDashboard = () => {
     if (patient) {
       setAccessPatient(patient as Patient);
 
-      // Create a consent request for access
-      const consentRequest = {
+      const consentRequest: ConsentRequest = {
         id: `request_${Date.now()}`,
-        type: 'access',
+        type: "access",
         patientHealthId: patient.healthId,
         hospitalId: currentUser.id,
         hospitalName: currentUser.name,
@@ -268,7 +254,6 @@ const HospitalDashboard = () => {
   };
 
   const downloadRecord = (record: MedicalRecord) => {
-    // Create a download link for the file
     const link = document.createElement('a');
     link.href = record.fileContent;
     link.download = record.fileName;
@@ -323,7 +308,6 @@ const HospitalDashboard = () => {
             </TabsTrigger>
           </TabsList>
           
-          {/* Generate Health ID Tab */}
           <TabsContent value="generate">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -413,7 +397,6 @@ const HospitalDashboard = () => {
             </div>
           </TabsContent>
           
-          {/* Upload Medical Record Tab */}
           <TabsContent value="upload">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -562,7 +545,6 @@ const HospitalDashboard = () => {
             </div>
           </TabsContent>
           
-          {/* Access Records Tab */}
           <TabsContent value="access">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
