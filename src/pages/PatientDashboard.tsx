@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/utils/auth-context';
 import { useDb, MedicalRecord, ConsentRequest } from '@/utils/db-context';
 import { 
@@ -33,15 +32,8 @@ import { Badge } from '@/components/ui/badge';
 const PatientDashboard = () => {
   const { currentUser, logout } = useAuth();
   const db = useDb();
-  const navigate = useNavigate();
   const { toast } = useToast();
   
-  useEffect(() => {
-    if (!currentUser || currentUser.type !== 'patient') {
-      navigate('/');
-    }
-  }, [currentUser, navigate]);
-
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [consentRequests, setConsentRequests] = useState<ConsentRequest[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -116,10 +108,6 @@ const PatientDashboard = () => {
     document.body.removeChild(link);
   };
 
-  if (!currentUser || currentUser.type !== 'patient') {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-health-light">
       <header className="bg-health-primary text-white p-4 shadow-md">
@@ -134,8 +122,8 @@ const PatientDashboard = () => {
           
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="font-medium">{currentUser.name}</p>
-              <p className="text-xs opacity-90">Health ID: {currentUser.healthId}</p>
+              <p className="font-medium">{currentUser?.name}</p>
+              <p className="text-xs opacity-90">Health ID: {currentUser?.healthId}</p>
             </div>
             <Button variant="outline" size="sm" onClick={() => logout()} className="bg-white/10 hover:bg-white/20 text-white">
               <LogOut className="h-4 w-4 mr-2" />
